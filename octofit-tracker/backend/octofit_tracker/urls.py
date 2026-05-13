@@ -13,11 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+import os
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from octofit_tracker import views
+from django.http import JsonResponse
 from django.views.generic import RedirectView
+
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -26,8 +30,18 @@ router.register(r'activities', views.ActivityViewSet)
 router.register(r'workouts', views.WorkoutViewSet)
 router.register(r'leaderboard', views.LeaderboardViewSet)
 
+# Helper para devolver la URL base de la API usando la variable de entorno
+def api_url_info(request):
+    codespace_name = os.environ.get('CODESPACE_NAME', None)
+    if codespace_name:
+        base_url = f"https://{codespace_name}-8000.app.github.dev/api/"
+    else:
+        base_url = "http://localhost:8000/api/"
+    return JsonResponse({"api_base_url": base_url})
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/urlinfo/', api_url_info, name='api-url-info'),
     path('', views.api_root, name='api-root'),
 ]
